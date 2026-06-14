@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Billionaire Finance Calculator V2</title>
+<style>
+  :root {
+    --bg: #0A0A0A;
+    --card: #161616;
+    --card-light: #1E1E1E;
+    --gold: #D4A017;
+    --gold-dark: #B8860B;
+    --green: #2ECC71;
+    --red: #E74C3C;
+    --amber: #F39C12;
+    --blue: #3498DB;
+    --text: #E8E8E8;
+    --muted: #999999;
+    --border: #2A2A2A;
+  }
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 16px;
+    line-height: 1.5;
+  }
+  .header {
+    text-align: center;
+    padding: 20px 0 16px;
+    border-bottom: 2px solid var(--gold);
+    margin-bottom: 16px;
+  }
+  .header h1 {
+    color: var(--gold);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .header p { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .header .v2tag {
+    display: inline-block;
+    background: var(--green);
+    color: #002B0F;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-top: 6px;
+  }
+
+  .group-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 18px 0 6px;
+  }
+  .group-label:first-of-type { margin-top: 0; }
+
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .tab-btn {
+    flex: 1 1 auto;
+    min-width: 85px;
+    padding: 9px 8px;
+    font-size: 11.5px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--muted);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .tab-btn.active {
+    background: var(--gold);
+    color: #1A1400;
+    border-color: var(--gold);
+    font-weight: 700;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadein 0.2s; }
+  @keyframes fadein { from{opacity:0} to{opacity:1} }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+  .card h2 {
+    color: var(--gold);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .card .formula {
+    font-size: 11px;
+    color: var(--green);
+    background: #001A08;
+    border: 1px solid var(--green);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin: 8px 0 14px;
+    font-family: monospace;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .field { margin: 14px 0; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .field-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .field-row input[type="range"] { flex: 1; }
+  .field-row input[type="number"].inline-num {
+    width: 100px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+    border: 2px solid #1A1400;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+    border: 2px solid #1A1400;
+  }
+  input[type="number"] {
+    background: var(--card-light);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 9px 10px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  input[type="number"]:focus {
+    outline: 1px solid var(--gold);
+    border-color: var(--gold);
+  }
+  input[type="number"].full { width: 100%; font-weight: 400; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 16px 0 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+  .section-label:first-of-type { border-top: none; padding-top: 0; }
+
+  .results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .metric {
+    background: var(--card-light);
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid var(--border);
+  }
+  .metric .label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .metric .value { font-size: 18px; font-weight: 700; word-break: break-word; }
+  .metric .value.green { color: var(--green); }
+  .metric .value.amber { color: var(--amber); }
+  .metric .value.red { color: var(--red); }
+  .metric .value.gold { color: var(--gold); }
+  .metric .value.blue { color: var(--blue); }
+
+  .verdict {
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+  .verdict.good { background: rgba(46,204,113,0.12); color: var(--green); border:1px solid var(--green); }
+  .verdict.ok { background: rgba(212,160,23,0.12); color: var(--gold); border:1px solid var(--gold); }
+  .verdict.bad { background: rgba(231,76,60,0.12); color: var(--red); border:1px solid var(--red); }
+
+  .note {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    line-height: 1.6;
+  }
+  .footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 11px;
+    padding: 16px 0;
+  }
+  .new-badge {
+    background: var(--green);
+    color: #002B0F;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 8px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>BILLIONAIRE FINANCE CALCULATOR</h1>
+  <p>Hinglish Edition — Saare formulas, ek jagah, slider + type both</p>
+  <div class="v2tag">VERSION 2 — 17 CALCULATORS</div>
+</div>
+
+<div class="group-label">Foundation</div>
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab(0)">Net Worth</button>
+  <button class="tab-btn" onclick="showTab(1)">Compound</button>
+  <button class="tab-btn" onclick="showTab(7)">SIP</button>
+  <button class="tab-btn" onclick="showTab(8)">Real Return</button>
+  <button class="tab-btn" onclick="showTab(9)">Goal Planner</button>
+  <button class="tab-btn" onclick="showTab(4)">Rule of 72</button>
+  <button class="tab-btn" onclick="showTab(6)">TVM</button>
+</div>
+
+<div class="group-label">Loans & Property</div>
+<div class="tabs">
+  <button class="tab-btn" onclick="showTab(2)">EMI</button>
+  <button class="tab-btn" onclick="showTab(10)">Prepayment</button>
+  <button class="tab-btn" onclick="showTab(3)">Leverage</button>
+  <button class="tab-btn" onclick="showTab(5)">Real Estate</button>
+  <button class="tab-btn" onclick="showTab(11)">Buy vs Rent</button>
+</div>
+
+<div class="group-label">Business & Advanced</div>
+<div class="tabs">
+  <button class="tab-btn" onclick="showTab(7)">Income Tax</button>
+  <button class="tab-btn" onclick="showTab(12)">Business Valuation</button>
+  <button class="tab-btn" onclick="showTab(13)">Cap Table / Dilution</button>
+  <button class="tab-btn" onclick="showTab(14)">Retirement Corpus</button>
+  <button class="tab-btn" onclick="showTab(15)">Carbon Credits</button>
+  <button class="tab-btn" onclick="showTab(16)">Forex Impact</button>
+</div>
+
+<!-- ============ 0: NET WORTH ============ -->
+<div class="panel active" id="panel0">
+  <div class="card">
+    <h2>Net Worth Calculator</h2>
+    <div class="formula">Net Worth = Total Assets − Total Liabilities</div>
+
+    <div class="section-label">Assets (Rs lakh)</div>
+    <div class="field"><label>Property / flat</label><input type="number" class="full" id="a1" value="0" oninput="calcNW()"></div>
+    <div class="field"><label>Stocks / mutual funds</label><input type="number" class="full" id="a2" value="0" oninput="calcNW()"></div>
+    <div class="field"><label>Gold / jewelry</label><input type="number" class="full" id="a3" value="0" oninput="calcNW()"></div>
+    <div class="field"><label>Business value</label><input type="number" class="full" id="a4" value="0" oninput="calcNW()"></div>
+    <div class="field"><label>Savings / FD / PPF</label><input type="number" class="full" id="a5" value="0" oninput="calcNW()"></div>
+
+    <div class="section-label">Liabilities (Rs lakh)</div>
+    <div class="field"><label>Home loan baki</label><input type="number" class="full" id="l1" value="0" oninput="calcNW()"></div>
+    <div class="field"><label>Car / personal loan</label><input type="number" class="full" id="l2" value="0" oninput="calcNW()"></div>
+    <div class="field"><label>Credit card / other debt</label><input type="number" class="full" id="l3" value="0" oninput="calcNW()"></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">Total assets</div><div class="value" id="nw-assets">Rs 0L</div></div>
+      <div class="metric"><div class="label">Total liabilities</div><div class="value" id="nw-liab">Rs 0L</div></div>
+      <div class="metric"><div class="label">Net worth</div><div class="value green" id="nw-result">Rs 0L</div></div>
+    </div>
+    <div class="note">Net worth milestones: Rs 0-10L (starter) | Rs 10-50L (accumulation) | Rs 50L-2Cr (growth) | Rs 2Cr-10Cr (HNI) | Rs 10Cr+ (UHNI)</div>
+  </div>
+</div>
+
+<!-- ============ 1: COMPOUND INTEREST ============ -->
+<div class="panel" id="panel1">
+  <div class="card">
+    <h2>Compound Interest / Future Value</h2>
+    <div class="formula">A = P x (1 + r/n)^(n x t)</div>
+
+    <div class="field"><label>Principal (Rs)</label>
+      <div class="field-row"><input type="range" id="ci-p" min="1000" max="10000000" step="1000" value="100000" oninput="syncFromSlider('ci-p')"><input type="number" class="inline-num" id="ci-p-num" value="100000" oninput="syncFromNumber('ci-p')"></div></div>
+    <div class="field"><label>Annual rate (%)</label>
+      <div class="field-row"><input type="range" id="ci-r" min="1" max="30" step="0.5" value="12" oninput="syncFromSlider('ci-r')"><input type="number" class="inline-num" id="ci-r-num" value="12" step="0.5" oninput="syncFromNumber('ci-r')"></div></div>
+    <div class="field"><label>Years</label>
+      <div class="field-row"><input type="range" id="ci-t" min="1" max="40" step="1" value="10" oninput="syncFromSlider('ci-t')"><input type="number" class="inline-num" id="ci-t-num" value="10" oninput="syncFromNumber('ci-t')"></div></div>
+    <div class="field"><label>Compounds per year</label>
+      <div class="field-row"><input type="range" id="ci-n" min="1" max="12" step="1" value="1" oninput="syncFromSlider('ci-n')"><input type="number" class="inline-num" id="ci-n-num" value="1" oninput="syncFromNumber('ci-n')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">Future value</div><div class="value gold" id="ci-fv">Rs 0</div></div>
+      <div class="metric"><div class="label">Total invested</div><div class="value" id="ci-principal">Rs 0</div></div>
+      <div class="metric"><div class="label">Total growth</div><div class="value green" id="ci-growth">Rs 0</div></div>
+    </div>
+    <div class="note">Einstein called this the 8th wonder of the world. Higher 'compounds per year' = faster growth (12 = monthly compounding).</div>
+  </div>
+</div>
+
+<!-- ============ 2: EMI ============ -->
+<div class="panel" id="panel2">
+  <div class="card">
+    <h2>EMI Calculator</h2>
+    <div class="formula">EMI = P x r x (1+r)^n / ((1+r)^n − 1)</div>
+
+    <div class="field"><label>Loan amount (Rs)</label>
+      <div class="field-row"><input type="range" id="emi-p" min="100000" max="20000000" step="50000" value="3000000" oninput="syncFromSlider('emi-p')"><input type="number" class="inline-num" id="emi-p-num" value="3000000" oninput="syncFromNumber('emi-p')"></div></div>
+    <div class="field"><label>Interest rate (%)</label>
+      <div class="field-row"><input type="range" id="emi-r" min="5" max="18" step="0.1" value="9" oninput="syncFromSlider('emi-r')"><input type="number" class="inline-num" id="emi-r-num" value="9" step="0.1" oninput="syncFromNumber('emi-r')"></div></div>
+    <div class="field"><label>Tenure (years)</label>
+      <div class="field-row"><input type="range" id="emi-y" min="1" max="30" step="1" value="15" oninput="syncFromSlider('emi-y')"><input type="number" class="inline-num" id="emi-y-num" value="15" oninput="syncFromNumber('emi-y')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">Monthly EMI</div><div class="value amber" id="emi-out">Rs 0</div></div>
+      <div class="metric"><div class="label">Total payment</div><div class="value" id="emi-total">Rs 0</div></div>
+      <div class="metric"><div class="label">Total interest</div><div class="value red" id="emi-interest">Rs 0</div></div>
+    </div>
+    <div class="note">Good debt rule: agar property se EMI se zyada rent/income aata hai, ye good debt hai (asset). Agar nahi — sirf liability hai.</div>
+  </div>
+</div>
+
+<!-- ============ 3: LEVERAGE / ROI ============ -->
+<div class="panel" id="panel3">
+  <div class="card">
+    <h2>Leverage & ROI Calculator</h2>
+    <div class="formula">Leverage Ratio = Total Asset Value / Your Money | ROI = Profit / Your Money x 100</div>
+
+    <div class="field"><label>Your investment (Rs)</label>
+      <div class="field-row"><input type="range" id="lev-own" min="100000" max="5000000" step="50000" value="1000000" oninput="syncFromSlider('lev-own')"><input type="number" class="inline-num" id="lev-own-num" value="1000000" oninput="syncFromNumber('lev-own')"></div></div>
+    <div class="field"><label>Bank loan (Rs)</label>
+      <div class="field-row"><input type="range" id="lev-loan" min="0" max="20000000" step="50000" value="4000000" oninput="syncFromSlider('lev-loan')"><input type="number" class="inline-num" id="lev-loan-num" value="4000000" oninput="syncFromNumber('lev-loan')"></div></div>
+    <div class="field"><label>Asset value growth (%)</label>
+      <div class="field-row"><input type="range" id="lev-growth" min="0" max="50" step="1" value="20" oninput="syncFromSlider('lev-growth')"><input type="number" class="inline-num" id="lev-growth-num" value="20" oninput="syncFromNumber('lev-growth')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">Total asset value</div><div class="value gold" id="lev-total">Rs 0</div></div>
+      <div class="metric"><div class="label">Leverage ratio</div><div class="value" id="lev-ratio">0x</div></div>
+      <div class="metric"><div class="label">Profit (after growth)</div><div class="value green" id="lev-profit">Rs 0</div></div>
+      <div class="metric"><div class="label">ROI on YOUR money</div><div class="value green" id="lev-roi">0%</div></div>
+    </div>
+    <div class="note">Same market growth, but leverage multiplies YOUR return. Higher leverage = higher reward AND higher risk. Max recommended LTV: 70%.</div>
+  </div>
+</div>
+
+<!-- ============ 4: RULE OF 72 ============ -->
+<div class="panel" id="panel4">
+  <div class="card">
+    <h2>Rule of 72 — Doubling Time</h2>
+    <div class="formula">Years to Double = 72 / Annual Return Rate</div>
+
+    <div class="field"><label>Annual return (%)</label>
+      <div class="field-row"><input type="range" id="r72-r" min="1" max="40" step="0.5" value="12" oninput="syncFromSlider('r72-r')"><input type="number" class="inline-num" id="r72-r-num" value="12" step="0.5" oninput="syncFromNumber('r72-r')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">Years to double</div><div class="value gold" id="r72-years">0 yrs</div></div>
+      <div class="metric"><div class="label">Times doubled in 20 years</div><div class="value green" id="r72-times">0</div></div>
+    </div>
+    <div class="note">FD at 6% = 12 years to double | Equity at 12% = 6 years | Real estate at 14% = ~5 years | Business at 30% = ~2.4 years</div>
+  </div>
+</div>
+
+<!-- ============ 5: REAL ESTATE ============ -->
+<div class="panel" id="panel5">
+  <div class="card">
+    <h2>Real Estate Deal Analyzer</h2>
+    <div class="formula">Cap Rate = NOI/Price x 100 | Cash-on-Cash = Annual Cashflow/Cash Invested x 100</div>
+
+    <div class="field"><label>Property price (Rs)</label>
+      <div class="field-row"><input type="range" id="re-price" min="500000" max="20000000" step="50000" value="5000000" oninput="syncFromSlider('re-price')"><input type="number" class="inline-num" id="re-price-num" value="5000000" oninput="syncFromNumber('re-price')"></div></div>
+    <div class="field"><label>Monthly rent (Rs)</label>
+      <div class="field-row"><input type="range" id="re-rent" min="2000" max="100000" step="1000" value="35000" oninput="syncFromSlider('re-rent')"><input type="number" class="inline-num" id="re-rent-num" value="35000" oninput="syncFromNumber('re-rent')"></div></div>
+    <div class="field"><label>Annual expenses (Rs)</label>
+      <div class="field-row"><input type="range" id="re-exp" min="0" max="500000" step="5000" value="60000" oninput="syncFromSlider('re-exp')"><input type="number" class="inline-num" id="re-exp-num" value="60000" oninput="syncFromNumber('re-exp')"></div></div>
+    <div class="field"><label>Down payment (%)</label>
+      <div class="field-row"><input type="range" id="re-down" min="10" max="100" step="5" value="20" oninput="syncFromSlider('re-down')"><input type="number" class="inline-num" id="re-down-num" value="20" oninput="syncFromNumber('re-down')"></div></div>
+    <div class="field"><label>Loan interest rate (%)</label>
+      <div class="field-row"><input type="range" id="re-loanrate" min="5" max="15" step="0.1" value="9" oninput="syncFromSlider('re-loanrate')"><input type="number" class="inline-num" id="re-loanrate-num" value="9" step="0.1" oninput="syncFromNumber('re-loanrate')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">NOI (annual)</div><div class="value" id="re-noi">Rs 0</div></div>
+      <div class="metric"><div class="label">Cap rate</div><div class="value gold" id="re-cap">0%</div></div>
+      <div class="metric"><div class="label">Monthly EMI</div><div class="value amber" id="re-emi">Rs 0</div></div>
+      <div class="metric"><div class="label">Monthly cashflow</div><div class="value" id="re-cashflow">Rs 0</div></div>
+      <div class="metric"><div class="label">Cash invested</div><div class="value" id="re-invested">Rs 0</div></div>
+      <div class="metric"><div class="label">Cash-on-cash return</div><div class="value green" id="re-coc">0%</div></div>
+    </div>
+    <div class="verdict" id="re-verdict"></div>
+    <div class="note">Loan tenure assumed 15 years for EMI calc. Cap rate &gt; 6% = good (better than FD). Positive cashflow + cap rate &gt; 6% = strong deal.</div>
+  </div>
+
+  <div class="card">
+    <h2>BRRRR — Max Purchase Price</h2>
+    <div class="formula">Max Purchase Price = (ARV x 0.70) − Renovation Cost</div>
+
+    <div class="field"><label>ARV — value after repair (Rs)</label>
+      <div class="field-row"><input type="range" id="brrrr-arv" min="500000" max="20000000" step="50000" value="3000000" oninput="syncFromSlider('brrrr-arv')"><input type="number" class="inline-num" id="brrrr-arv-num" value="3000000" oninput="syncFromNumber('brrrr-arv')"></div></div>
+    <div class="field"><label>Renovation cost (Rs)</label>
+      <div class="field-row"><input type="range" id="brrrr-reno" min="0" max="2000000" step="10000" value="150000" oninput="syncFromSlider('brrrr-reno')"><input type="number" class="inline-num" id="brrrr-reno-num" value="150000" oninput="syncFromNumber('brrrr-reno')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">Maximum purchase price (70% rule)</div><div class="value green" id="brrrr-max">Rs 0</div></div>
+    </div>
+    <div class="note">Agar property is price se kam mein milti hai (renovation + 70% ARV se neeche) — ye ek profitable BRRRR deal hai.</div>
+  </div>
+</div>
+
+<!-- ============ 6: TVM ============ -->
+<div class="panel" id="panel6">
+  <div class="card">
+    <h2>Time Value of Money</h2>
+    <div class="formula">FV = PV x (1+r)^n | PV = FV / (1+r)^n</div>
+
+    <div class="field"><label>Amount (Rs)</label>
+      <div class="field-row"><input type="range" id="tvm-amt" min="10000" max="10000000" step="10000" value="1000000" oninput="syncFromSlider('tvm-amt')"><input type="number" class="inline-num" id="tvm-amt-num" value="1000000" oninput="syncFromNumber('tvm-amt')"></div></div>
+    <div class="field"><label>Discount / growth rate (%)</label>
+      <div class="field-row"><input type="range" id="tvm-r" min="1" max="30" step="0.5" value="12" oninput="syncFromSlider('tvm-r')"><input type="number" class="inline-num" id="tvm-r-num" value="12" step="0.5" oninput="syncFromNumber('tvm-r')"></div></div>
+    <div class="field"><label>Years</label>
+      <div class="field-row"><input type="range" id="tvm-n" min="1" max="30" step="1" value="5" oninput="syncFromSlider('tvm-n')"><input type="number" class="inline-num" id="tvm-n-num" value="5" oninput="syncFromNumber('tvm-n')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">Future value (of amount today)</div><div class="value gold" id="tvm-fv">Rs 0</div></div>
+      <div class="metric"><div class="label">Present value (of amount in future)</div><div class="value green" id="tvm-pv">Rs 0</div></div>
+    </div>
+    <div class="note">FV: "agar ye amount aaj invest karu, kitna banega future mein?" | PV: "agar mujhe future mein ye amount milega, aaj uski value kya hai?"</div>
+  </div>
+</div>
+
+<!-- ============ 7: INCOME TAX ============ -->
+<div class="panel" id="panel7">
+  <div class="card">
+    <h2>Income Tax Estimator (New Regime FY24-25)</h2>
+    <div class="formula">Slab-wise tax calculation — New Tax Regime</div>
+
+    <div class="field"><label>Annual income (Rs)</label>
+      <div class="field-row"><input type="range" id="tax-income" min="300000" max="10000000" step="10000" value="1200000" oninput="syncFromSlider('tax-income')"><input type="number" class="inline-num" id="tax-income-num" value="1200000" oninput="syncFromNumber('tax-income')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">Total tax (new regime)</div><div class="value red" id="tax-amount">Rs 0</div></div>
+      <div class="metric"><div class="label">Effective tax rate</div><div class="value amber" id="tax-rate">0%</div></div>
+      <div class="metric"><div class="label">In-hand income (annual)</div><div class="value green" id="tax-inhand">Rs 0</div></div>
+      <div class="metric"><div class="label">In-hand income (monthly)</div><div class="value green" id="tax-monthly">Rs 0</div></div>
+    </div>
+    <div class="note">New Regime Slabs: 0-3L: NIL | 3-7L: 5% | 7-10L: 10% | 10-12L: 15% | 12-15L: 20% | Above 15L: 30%. Section 87A rebate applies up to Rs 7L (tax = zero). Estimate only — consult a CA.</div>
+  </div>
+</div>
+
+<!-- ============ 8: SIP ============ -->
+<div class="panel" id="panel8">
+  <div class="card">
+    <h2>SIP Calculator <span class="new-badge">NEW</span></h2>
+    <div class="formula">FV = P x [((1+r)^n - 1) / r] x (1+r)  |  r = monthly rate</div>
+
+    <div class="field"><label>Monthly investment (Rs)</label>
+      <div class="field-row"><input type="range" id="sip-p" min="500" max="200000" step="500" value="5000" oninput="syncFromSlider('sip-p')"><input type="number" class="inline-num" id="sip-p-num" value="5000" oninput="syncFromNumber('sip-p')"></div></div>
+    <div class="field"><label>Expected annual return (%)</label>
+      <div class="field-row"><input type="range" id="sip-r" min="1" max="30" step="0.5" value="12" oninput="syncFromSlider('sip-r')"><input type="number" class="inline-num" id="sip-r-num" value="12" step="0.5" oninput="syncFromNumber('sip-r')"></div></div>
+    <div class="field"><label>Duration (years)</label>
+      <div class="field-row"><input type="range" id="sip-y" min="1" max="40" step="1" value="15" oninput="syncFromSlider('sip-y')"><input type="number" class="inline-num" id="sip-y-num" value="15" oninput="syncFromNumber('sip-y')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">Total invested</div><div class="value" id="sip-invested">Rs 0</div></div>
+      <div class="metric"><div class="label">Future value</div><div class="value gold" id="sip-fv">Rs 0</div></div>
+      <div class="metric"><div class="label">Wealth gained</div><div class="value green" id="sip-gain">Rs 0</div></div>
+    </div>
+    <div class="note">SIP = Systematic Investment Plan. Har mahine fix amount equity mutual fund mein — rupee cost averaging ka benefit milta hai. 12% conservative long-term estimate hai equity ke liye.</div>
+  </div>
+</div>
+
+<!-- ============ 9: REAL RETURN (Inflation Adjusted) ============ -->
+<div class="panel" id="panel9">
+  <div class="card">
+    <h2>Inflation-Adjusted Real Return <span class="new-badge">NEW</span></h2>
+    <div class="formula">Real Return = Nominal Return − Inflation Rate</div>
+
+    <div class="field"><label>Nominal return (%) — e.g. FD rate</label>
+      <div class="field-row"><input type="range" id="rr-nom" min="0" max="30" step="0.1" value="7" oninput="syncFromSlider('rr-nom')"><input type="number" class="inline-num" id="rr-nom-num" value="7" step="0.1" oninput="syncFromNumber('rr-nom')"></div></div>
+    <div class="field"><label>Inflation rate (%)</label>
+      <div class="field-row"><input type="range" id="rr-inf" min="0" max="15" step="0.1" value="6" oninput="syncFromSlider('rr-inf')"><input type="number" class="inline-num" id="rr-inf-num" value="6" step="0.1" oninput="syncFromNumber('rr-inf')"></div></div>
+    <div class="field"><label>Amount today (Rs)</label>
+      <div class="field-row"><input type="range" id="rr-amt" min="10000" max="10000000" step="10000" value="1000000" oninput="syncFromSlider('rr-amt')"><input type="number" class="inline-num" id="rr-amt-num" value="1000000" oninput="syncFromNumber('rr-amt')"></div></div>
+    <div class="field"><label>Years</label>
+      <div class="field-row"><input type="range" id="rr-yrs" min="1" max="30" step="1" value="10" oninput="syncFromSlider('rr-yrs')"><input type="number" class="inline-num" id="rr-yrs-num" value="10" oninput="syncFromNumber('rr-yrs')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">Real return rate</div><div class="value gold" id="rr-real">0%</div></div>
+      <div class="metric"><div class="label">Nominal future value</div><div class="value" id="rr-nominal-fv">Rs 0</div></div>
+      <div class="metric"><div class="label">Real (purchasing power) value</div><div class="value green" id="rr-real-fv">Rs 0</div></div>
+    </div>
+    <div class="verdict" id="rr-verdict"></div>
+    <div class="note">"Real value" batata hai ki future ka paisa AAJ ki purchasing power mein kitna hai. Agar real return negative hai — tu actually GAREEB ho raha hai, chahe number badh raha ho.</div>
+  </div>
+</div>
+
+<!-- ============ 10: GOAL-BASED PLANNER ============ -->
+<div class="panel" id="panel10">
+  <div class="card">
+    <h2>Goal-Based Planner (Reverse SIP) <span class="new-badge">NEW</span></h2>
+    <div class="formula">Required Monthly SIP = Goal / [((1+r)^n - 1)/r x (1+r)]</div>
+
+    <div class="field"><label>Goal amount (Rs)</label>
+      <div class="field-row"><input type="range" id="goal-amt" min="100000" max="100000000" step="100000" value="10000000" oninput="syncFromSlider('goal-amt')"><input type="number" class="inline-num" id="goal-amt-num" value="10000000" oninput="syncFromNumber('goal-amt')"></div></div>
+    <div class="field"><label>Years to achieve</label>
+      <div class="field-row"><input type="range" id="goal-yrs" min="1" max="40" step="1" value="10" oninput="syncFromSlider('goal-yrs')"><input type="number" class="inline-num" id="goal-yrs-num" value="10" oninput="syncFromNumber('goal-yrs')"></div></div>
+    <div class="field"><label>Expected annual return (%)</label>
+      <div class="field-row"><input type="range" id="goal-r" min="1" max="30" step="0.5" value="12" oninput="syncFromSlider('goal-r')"><input type="number" class="inline-num" id="goal-r-num" value="12" step="0.5" oninput="syncFromNumber('goal-r')"></div></div>
+    <div class="field"><label>Lumpsum already invested (Rs, optional)</label>
+      <div class="field-row"><input type="range" id="goal-lump" min="0" max="50000000" step="50000" value="0" oninput="syncFromSlider('goal-lump')"><input type="number" class="inline-num" id="goal-lump-num" value="0" oninput="syncFromNumber('goal-lump')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">Lumpsum grows to</div><div class="value" id="goal-lump-fv">Rs 0</div></div>
+      <div class="metric"><div class="label">Remaining goal needed</div><div class="value amber" id="goal-remaining">Rs 0</div></div>
+      <div class="metric"><div class="label">Required monthly SIP</div><div class="value gold" id="goal-sip">Rs 0</div></div>
+    </div>
+    <div class="note">Ye reverse calculation hai — goal pehle decide karo, phir pata chalega kitna invest karna padega monthly. "Rs 1Cr chahiye 10 saal mein, 12% return — kitna SIP karna padega?"</div>
+  </div>
+</div>
+
+<!-- ============ 11: PREPAYMENT IMPACT ============ -->
+<div class="panel" id="panel11">
+  <div class="card">
+    <h2>Loan Prepayment Impact <span class="new-badge">NEW</span></h2>
+    <div class="formula">Extra EMI payment → loan tenure ghatta hai, interest bachta hai</div>
+
+    <div class="field"><label>Outstanding loan (Rs)</label>
+      <div class="field-row"><input type="range" id="prep-p" min="100000" max="20000000" step="50000" value="3000000" oninput="syncFromSlider('prep-p')"><input type="number" class="inline-num" id="prep-p-num" value="3000000" oninput="syncFromNumber('prep-p')"></div></div>
+    <div class="field"><label>Interest rate (%)</label>
+      <div class="field-row"><input type="range" id="prep-r" min="5" max="18" step="0.1" value="9" oninput="syncFromSlider('prep-r')"><input type="number" class="inline-num" id="prep-r-num" value="9" step="0.1" oninput="syncFromNumber('prep-r')"></div></div>
+    <div class="field"><label>Remaining tenure (years)</label>
+      <div class="field-row"><input type="range" id="prep-y" min="1" max="30" step="1" value="15" oninput="syncFromSlider('prep-y')"><input type="number" class="inline-num" id="prep-y-num" value="15" oninput="syncFromNumber('prep-y')"></div></div>
+    <div class="field"><label>Extra monthly prepayment (Rs)</label>
+      <div class="field-row"><input type="range" id="prep-extra" min="0" max="100000" step="500" value="5000" oninput="syncFromSlider('prep-extra')"><input type="number" class="inline-num" id="prep-extra-num" value="5000" oninput="syncFromNumber('prep-extra')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">Original EMI</div><div class="value" id="prep-orig-emi">Rs 0</div></div>
+      <div class="metric"><div class="label">New tenure (with prepayment)</div><div class="value gold" id="prep-new-tenure">0 yrs</div></div>
+      <div class="metric"><div class="label">Time saved</div><div class="value green" id="prep-time-saved">0 yrs</div></div>
+      <div class="metric"><div class="label">Interest saved</div><div class="value green" id="prep-interest-saved">Rs 0</div></div>
+    </div>
+    <div class="note">Even small extra payments (Rs 2000-5000/month) early in the loan save lakhs in interest aur years of EMI. Best time to prepay: loan ke early years mein (interest component zyada hota hai).</div>
+  </div>
+</div>
+
+<!-- ============ 12: BUY VS RENT ============ -->
+<div class="panel" id="panel12">
+  <div class="card">
+    <h2>Buy vs Rent Decision <span class="new-badge">NEW</span></h2>
+    <div class="formula">Compare: Property appreciation vs (Down payment + EMI-Rent diff) invested elsewhere</div>
+
+    <div class="field"><label>Property price (Rs)</label>
+      <div class="field-row"><input type="range" id="bvr-price" min="1000000" max="30000000" step="100000" value="6000000" oninput="syncFromSlider('bvr-price')"><input type="number" class="inline-num" id="bvr-price-num" value="6000000" oninput="syncFromNumber('bvr-price')"></div></div>
+    <div class="field"><label>Equivalent monthly rent (Rs)</label>
+      <div class="field-row"><input type="range" id="bvr-rent" min="2000" max="150000" step="1000" value="20000" oninput="syncFromSlider('bvr-rent')"><input type="number" class="inline-num" id="bvr-rent-num" value="20000" oninput="syncFromNumber('bvr-rent')"></div></div>
+    <div class="field"><label>Down payment (%)</label>
+      <div class="field-row"><input type="range" id="bvr-down" min="10" max="100" step="5" value="20" oninput="syncFromSlider('bvr-down')"><input type="number" class="inline-num" id="bvr-down-num" value="20" oninput="syncFromNumber('bvr-down')"></div></div>
+    <div class="field"><label>Home loan rate (%)</label>
+      <div class="field-row"><input type="range" id="bvr-loanrate" min="5" max="15" step="0.1" value="9" oninput="syncFromSlider('bvr-loanrate')"><input type="number" class="inline-num" id="bvr-loanrate-num" value="9" step="0.1" oninput="syncFromNumber('bvr-loanrate')"></div></div>
+    <div class="field"><label>Property appreciation (% per year)</label>
+      <div class="field-row"><input type="range" id="bvr-apprec" min="0" max="15" step="0.5" value="8" oninput="syncFromSlider('bvr-apprec')"><input type="number" class="inline-num" id="bvr-apprec-num" value="8" step="0.5" oninput="syncFromNumber('bvr-apprec')"></div></div>
+    <div class="field"><label>Alternative investment return (% per year)</label>
+      <div class="field-row"><input type="range" id="bvr-investret" min="0" max="20" step="0.5" value="12" oninput="syncFromSlider('bvr-investret')"><input type="number" class="inline-num" id="bvr-investret-num" value="12" step="0.5" oninput="syncFromNumber('bvr-investret')"></div></div>
+    <div class="field"><label>Time horizon (years)</label>
+      <div class="field-row"><input type="range" id="bvr-yrs" min="1" max="30" step="1" value="10" oninput="syncFromSlider('bvr-yrs')"><input type="number" class="inline-num" id="bvr-yrs-num" value="10" oninput="syncFromNumber('bvr-yrs')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">BUY: Net worth after N years</div><div class="value gold" id="bvr-buy">Rs 0</div></div>
+      <div class="metric"><div class="label">RENT + INVEST: Net worth after N years</div><div class="value blue" id="bvr-rent-result">Rs 0</div></div>
+    </div>
+    <div class="verdict" id="bvr-verdict"></div>
+    <div class="note">BUY scenario: down payment paid, EMI paid, property value at end (minus remaining loan). RENT scenario: down payment + monthly (EMI-rent difference if positive) invested at alternative return, rent paid separately. Both simplified — actual decisions involve taxes, maintenance, lifestyle factors too.</div>
+  </div>
+</div>
+
+<!-- ============ 13: BUSINESS VALUATION ============ -->
+<div class="panel" id="panel13">
+  <div class="card">
+    <h2>Business Valuation Calculator <span class="new-badge">NEW</span></h2>
+    <div class="formula">Valuation = Annual Revenue x Multiple  OR  EBITDA x Multiple</div>
+
+    <div class="field"><label>Monthly revenue (Rs)</label>
+      <div class="field-row"><input type="range" id="bv-rev" min="10000" max="10000000" step="10000" value="100000" oninput="syncFromSlider('bv-rev')"><input type="number" class="inline-num" id="bv-rev-num" value="100000" oninput="syncFromNumber('bv-rev')"></div></div>
+    <div class="field"><label>Net profit margin (%)</label>
+      <div class="field-row"><input type="range" id="bv-margin" min="1" max="80" step="1" value="25" oninput="syncFromSlider('bv-margin')"><input type="number" class="inline-num" id="bv-margin-num" value="25" oninput="syncFromNumber('bv-margin')"></div></div>
+    <div class="field"><label>Revenue multiple (typical: 1x-10x)</label>
+      <div class="field-row"><input type="range" id="bv-revmult" min="0.5" max="15" step="0.5" value="3" oninput="syncFromSlider('bv-revmult')"><input type="number" class="inline-num" id="bv-revmult-num" value="3" step="0.5" oninput="syncFromNumber('bv-revmult')"></div></div>
+    <div class="field"><label>EBITDA multiple (typical: 5x-20x)</label>
+      <div class="field-row"><input type="range" id="bv-ebitdamult" min="1" max="25" step="1" value="8" oninput="syncFromSlider('bv-ebitdamult')"><input type="number" class="inline-num" id="bv-ebitdamult-num" value="8" oninput="syncFromNumber('bv-ebitdamult')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">Annual revenue</div><div class="value" id="bv-annualrev">Rs 0</div></div>
+      <div class="metric"><div class="label">Annual profit (EBITDA proxy)</div><div class="value" id="bv-annualprofit">Rs 0</div></div>
+      <div class="metric"><div class="label">Valuation (revenue method)</div><div class="value gold" id="bv-val-rev">Rs 0</div></div>
+      <div class="metric"><div class="label">Valuation (EBITDA method)</div><div class="value green" id="bv-val-ebitda">Rs 0</div></div>
+    </div>
+    <div class="note">SaaS/agency businesses trade at 2-4x revenue typically. EBITDA multiples vary widely by industry (5x for traditional businesses, 15-20x+ for high-growth tech). Use both as a range, not exact numbers.</div>
+  </div>
+</div>
+
+<!-- ============ 14: CAP TABLE / DILUTION ============ -->
+<div class="panel" id="panel14">
+  <div class="card">
+    <h2>Cap Table / Dilution Calculator <span class="new-badge">NEW</span></h2>
+    <div class="formula">New Investor % = Investment / Post-Money Valuation | Post-Money = Pre-Money + Investment</div>
+
+    <div class="field"><label>Current company valuation (Pre-money, Rs)</label>
+      <div class="field-row"><input type="range" id="cap-premoney" min="1000000" max="500000000" step="1000000" value="20000000" oninput="syncFromSlider('cap-premoney')"><input type="number" class="inline-num" id="cap-premoney-num" value="20000000" oninput="syncFromNumber('cap-premoney')"></div></div>
+    <div class="field"><label>Investment amount (Rs)</label>
+      <div class="field-row"><input type="range" id="cap-invest" min="100000" max="200000000" step="100000" value="5000000" oninput="syncFromSlider('cap-invest')"><input type="number" class="inline-num" id="cap-invest-num" value="5000000" oninput="syncFromNumber('cap-invest')"></div></div>
+    <div class="field"><label>Your current ownership (%)</label>
+      <div class="field-row"><input type="range" id="cap-yourpct" min="1" max="100" step="1" value="100" oninput="syncFromSlider('cap-yourpct')"><input type="number" class="inline-num" id="cap-yourpct-num" value="100" oninput="syncFromNumber('cap-yourpct')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">Post-money valuation</div><div class="value gold" id="cap-postmoney">Rs 0</div></div>
+      <div class="metric"><div class="label">New investor ownership</div><div class="value amber" id="cap-investorpct">0%</div></div>
+      <div class="metric"><div class="label">Your new ownership %</div><div class="value" id="cap-yournewpct">0%</div></div>
+      <div class="metric"><div class="label">Your stake value (after dilution)</div><div class="value green" id="cap-yourvalue">Rs 0</div></div>
+    </div>
+    <div class="verdict" id="cap-verdict"></div>
+    <div class="note">Dilution is okay if your stake's RUPEE VALUE goes up, even if your PERCENTAGE goes down. 75% of Rs 2Cr (Rs 1.5Cr) is better than 100% of Rs 1Cr.</div>
+  </div>
+</div>
+
+<!-- ============ 15: RETIREMENT CORPUS ============ -->
+<div class="panel" id="panel15">
+  <div class="card">
+    <h2>Retirement Corpus Calculator <span class="new-badge">NEW</span></h2>
+    <div class="formula">Corpus Needed = Annual Expenses / Withdrawal Rate (typically 4%)</div>
+
+    <div class="field"><label>Current monthly expenses (Rs)</label>
+      <div class="field-row"><input type="range" id="ret-exp" min="10000" max="1000000" step="5000" value="50000" oninput="syncFromSlider('ret-exp')"><input type="number" class="inline-num" id="ret-exp-num" value="50000" oninput="syncFromNumber('ret-exp')"></div></div>
+    <div class="field"><label>Years until retirement</label>
+      <div class="field-row"><input type="range" id="ret-yrs" min="1" max="50" step="1" value="30" oninput="syncFromSlider('ret-yrs')"><input type="number" class="inline-num" id="ret-yrs-num" value="30" oninput="syncFromNumber('ret-yrs')"></div></div>
+    <div class="field"><label>Inflation rate (%)</label>
+      <div class="field-row"><input type="range" id="ret-inf" min="0" max="12" step="0.5" value="6" oninput="syncFromSlider('ret-inf')"><input type="number" class="inline-num" id="ret-inf-num" value="6" step="0.5" oninput="syncFromNumber('ret-inf')"></div></div>
+    <div class="field"><label>Safe withdrawal rate (%)</label>
+      <div class="field-row"><input type="range" id="ret-withdraw" min="2" max="8" step="0.5" value="4" oninput="syncFromSlider('ret-withdraw')"><input type="number" class="inline-num" id="ret-withdraw-num" value="4" step="0.5" oninput="syncFromNumber('ret-withdraw')"></div></div>
+    <div class="field"><label>Expected return on corpus (%)</label>
+      <div class="field-row"><input type="range" id="ret-r" min="1" max="20" step="0.5" value="10" oninput="syncFromSlider('ret-r')"><input type="number" class="inline-num" id="ret-r-num" value="10" step="0.5" oninput="syncFromNumber('ret-r')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">Monthly expenses at retirement (inflated)</div><div class="value amber" id="ret-future-exp">Rs 0</div></div>
+      <div class="metric"><div class="label">Corpus needed at retirement</div><div class="value gold" id="ret-corpus">Rs 0</div></div>
+      <div class="metric"><div class="label">Required monthly SIP (from now)</div><div class="value green" id="ret-sip">Rs 0</div></div>
+    </div>
+    <div class="note">4% withdrawal rule: if you withdraw 4% of corpus annually, it should last 30+ years (assuming the corpus continues growing). Lower withdrawal rate = more conservative = needs bigger corpus.</div>
+  </div>
+</div>
+
+<!-- ============ 16: CARBON CREDITS ============ -->
+<div class="panel" id="panel16">
+  <div class="card">
+    <h2>Carbon Credit Revenue Calculator <span class="new-badge">NEW</span></h2>
+    <div class="formula">Monthly Revenue = Tonnes Recycled x Credits per Tonne x Price per Credit</div>
+
+    <div class="field"><label>Waste recycled per month (tonnes)</label>
+      <div class="field-row"><input type="range" id="cc-tonnes" min="10" max="50000" step="10" value="1000" oninput="syncFromSlider('cc-tonnes')"><input type="number" class="inline-num" id="cc-tonnes-num" value="1000" oninput="syncFromNumber('cc-tonnes')"></div></div>
+    <div class="field"><label>Carbon credits per tonne (estimate)</label>
+      <div class="field-row"><input type="range" id="cc-rate" min="0.5" max="5" step="0.1" value="1.5" oninput="syncFromSlider('cc-rate')"><input type="number" class="inline-num" id="cc-rate-num" value="1.5" step="0.1" oninput="syncFromNumber('cc-rate')"></div></div>
+    <div class="field"><label>Price per credit (USD)</label>
+      <div class="field-row"><input type="range" id="cc-price" min="1" max="100" step="1" value="15" oninput="syncFromSlider('cc-price')"><input type="number" class="inline-num" id="cc-price-num" value="15" oninput="syncFromNumber('cc-price')"></div></div>
+    <div class="field"><label>USD to INR rate</label>
+      <div class="field-row"><input type="range" id="cc-fx" min="70" max="100" step="0.5" value="84" oninput="syncFromSlider('cc-fx')"><input type="number" class="inline-num" id="cc-fx-num" value="84" step="0.5" oninput="syncFromNumber('cc-fx')"></div></div>
+
+    <div class="results">
+      <div class="metric"><div class="label">Credits generated per month</div><div class="value" id="cc-credits">0</div></div>
+      <div class="metric"><div class="label">Monthly revenue (USD)</div><div class="value blue" id="cc-revenue-usd">$0</div></div>
+      <div class="metric"><div class="label">Monthly revenue (INR)</div><div class="value gold" id="cc-revenue-inr">Rs 0</div></div>
+      <div class="metric"><div class="label">Annual revenue (INR)</div><div class="value green" id="cc-annual-inr">Rs 0</div></div>
+    </div>
+    <div class="note">This is ADDITIONAL revenue on top of selling recycled material itself. Carbon credit rates and prices vary by methodology and market — this is an estimate for planning purposes.</div>
+  </div>
+</div>
+
+<!-- ============ 17: FOREX IMPACT ============ -->
+<div class="panel" id="panel17">
+  <div class="card">
+    <h2>Forex / Currency Impact Calculator <span class="new-badge">NEW</span></h2>
+    <div class="formula">Impact = Foreign Currency Amount x (New Rate − Old Rate)</div>
+
+    <div class="field"><label>Transaction amount (USD)</label>
+      <div class="field-row"><input type="range" id="fx-usd" min="100" max="1000000" step="100" value="10000" oninput="syncFromSlider('fx-usd')"><input type="number" class="inline-num" id="fx-usd-num" value="10000" oninput="syncFromNumber('fx-usd')"></div></div>
+    <div class="field"><label>Old USD/INR rate</label>
+      <div class="field-row"><input type="range" id="fx-old" min="70" max="100" step="0.1" value="83" oninput="syncFromSlider('fx-old')"><input type="number" class="inline-num" id="fx-old-num" value="83" step="0.1" oninput="syncFromNumber('fx-old')"></div></div>
+    <div class="field"><label>New USD/INR rate</label>
+      <div class="field-row"><input type="range" id="fx-new" min="70" max="100" step="0.1" value="86" oninput="syncFromSlider('fx-new')"><input type="number" class="inline-num" id="fx-new-num" value="86" step="0.1" oninput="syncFromNumber('fx-new')"></div></div>
+    <div class="field"><label>You are an...</label>
+      <div class="field-row">
+        <select id="fx-type" class="full" onchange="calcFX()" style="background:var(--card-light);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 10px;font-size:13px;width:100%;">
+          <option value="exporter">Exporter (receiving USD)</option>
+          <option value="importer">Importer (paying USD)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="results">
+      <div class="metric"><div class="label">INR value at old rate</div><div class="value" id="fx-old-inr">Rs 0</div></div>
+      <div class="metric"><div class="label">INR value at new rate</div><div class="value gold" id="fx-new-inr">Rs 0</div></div>
+      <div class="metric"><div class="label">Impact</div><div class="value green" id="fx-impact">Rs 0</div></div>
+    </div>
+    <div class="verdict" id="fx-verdict"></div>
+    <div class="note">Exporters benefit when rupee weakens (rate goes up). Importers benefit when rupee strengthens (rate goes down). Useful for international waste material trading or global expansion planning.</div>
+  </div>
+</div>
+
+<div class="footer">Billionaire Finance Bible — Calculator Suite V2 | 17 calculators | Save this file, use offline anytime</div>
+
+<script>
+function showTab(n) {
+  document.querySelectorAll('.panel').forEach((el,i)=>el.classList.toggle('active', i===n));
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  // find all buttons that map to this panel and activate them
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    if (btn.getAttribute('onclick') === `showTab(${n})`) btn.classList.add('active');
+  });
+}
+
+function inr(num) {
+  if (isNaN(num)) num = 0;
+  return 'Rs ' + Math.round(num).toLocaleString('en-IN');
+}
+function usd(num) {
+  if (isNaN(num)) num = 0;
+  return '$' + Math.round(num).toLocaleString('en-US');
+}
+
+// Generic slider <-> number sync
+function syncFromSlider(id) {
+  const slider = document.getElementById(id);
+  const numInput = document.getElementById(id + '-num');
+  numInput.value = slider.value;
+  runCalc(id);
+}
+function syncFromNumber(id) {
+  const slider = document.getElementById(id);
+  const numInput = document.getElementById(id + '-num');
+  let val = parseFloat(numInput.value);
+  if (isNaN(val)) val = 0;
+  const min = parseFloat(slider.min), max = parseFloat(slider.max);
+  // Allow number input to exceed slider range without clamping the number itself,
+  // but clamp the slider position visually
+  slider.value = Math.min(Math.max(val, min), max);
+  runCalc(id);
+}
+
+// Map field id prefix to its calc function
+const calcMap = {
+  'ci-': calcCI, 'emi-': calcEMI, 'lev-': calcLev, 'r72-': calcR72,
+  're-': calcRE, 'brrrr-': calcBRRRR, 'tvm-': calcTVM, 'tax-': calcTax,
+  'sip-': calcSIP, 'rr-': calcRealReturn, 'goal-': calcGoal, 'prep-': calcPrepay,
+  'bvr-': calcBuyVsRent, 'bv-': calcBizVal, 'cap-': calcCapTable,
+  'ret-': calcRetirement, 'cc-': calcCarbon, 'fx-': calcFX
+};
+function runCalc(id) {
+  for (const prefix in calcMap) {
+    if (id.startsWith(prefix)) { calcMap[prefix](); return; }
+  }
+}
+
+// ===== NET WORTH =====
+function calcNW() {
+  let assets = 0, liab = 0;
+  for (let i=1;i<=5;i++) assets += parseFloat(document.getElementById('a'+i).value)||0;
+  for (let i=1;i<=3;i++) liab += parseFloat(document.getElementById('l'+i).value)||0;
+  document.getElementById('nw-assets').textContent = 'Rs ' + assets.toFixed(1) + 'L';
+  document.getElementById('nw-liab').textContent = 'Rs ' + liab.toFixed(1) + 'L';
+  document.getElementById('nw-result').textContent = 'Rs ' + (assets-liab).toFixed(1) + 'L';
+}
+
+// ===== COMPOUND INTEREST =====
+function calcCI() {
+  const p = parseFloat(document.getElementById('ci-p-num').value)||0;
+  const rPct = parseFloat(document.getElementById('ci-r-num').value)||0;
+  const r = rPct/100;
+  const t = parseFloat(document.getElementById('ci-t-num').value)||0;
+  const n = parseFloat(document.getElementById('ci-n-num').value)||1;
+  const fv = p * Math.pow(1 + r/n, n*t);
+  document.getElementById('ci-fv').textContent = inr(fv);
+  document.getElementById('ci-principal').textContent = inr(p);
+  document.getElementById('ci-growth').textContent = inr(fv-p);
+}
+
+// ===== EMI =====
+function calcEMI() {
+  const p = parseFloat(document.getElementById('emi-p-num').value)||0;
+  const rPct = parseFloat(document.getElementById('emi-r-num').value)||0;
+  const r = rPct/12/100;
+  const years = parseFloat(document.getElementById('emi-y-num').value)||1;
+  const n = years*12;
+  const emi = r > 0 ? p*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1) : p/n;
+  const total = emi*n;
+  document.getElementById('emi-out').textContent = inr(emi);
+  document.getElementById('emi-total').textContent = inr(total);
+  document.getElementById('emi-interest').textContent = inr(total-p);
+}
+
+// ===== LEVERAGE =====
+function calcLev() {
+  const own = parseFloat(document.getElementById('lev-own-num').value)||0;
+  const loan = parseFloat(document.getElementById('lev-loan-num').value)||0;
+  const growthPct = parseFloat(document.getElementById('lev-growth-num').value)||0;
+  const growth = growthPct/100;
+  const total = own + loan;
+  const futureVal = total * (1+growth);
+  const profit = futureVal - total;
+  const roi = own > 0 ? (profit/own)*100 : 0;
+  document.getElementById('lev-total').textContent = inr(total);
+  document.getElementById('lev-ratio').textContent = (own > 0 ? (total/own).toFixed(1) : 0) + 'x';
+  document.getElementById('lev-profit').textContent = inr(profit);
+  document.getElementById('lev-roi').textContent = roi.toFixed(1) + '%';
+}
+
+// ===== RULE OF 72 =====
+function calcR72() {
+  const r = parseFloat(document.getElementById('r72-r-num').value)||1;
+  const years = 72/r;
+  const times = Math.floor(20/years);
+  document.getElementById('r72-years').textContent = years.toFixed(1) + ' yrs';
+  document.getElementById('r72-times').textContent = times;
+}
+
+// ===== REAL ESTATE =====
+function calcRE() {
+  const price = parseFloat(document.getElementById('re-price-num').value)||1;
+  const rent = parseFloat(document.getElementById('re-rent-num').value)||0;
+  const exp = parseFloat(document.getElementById('re-exp-num').value)||0;
+  const downPct = parseFloat(document.getElementById('re-down-num').value)||20;
+  const down = downPct/100;
+  const loanRatePct = parseFloat(document.getElementById('re-loanrate-num').value)||9;
+  const loanRate = loanRatePct/100;
+
+  const annualRent = rent*12;
+  const noi = annualRent - exp;
+  const capRate = (noi/price)*100;
+
+  const downPayment = price*down;
+  const loanAmt = price - downPayment;
+  const monthlyRate = loanRate/12;
+  const tenureMonths = 15*12;
+  const emi = loanAmt > 0 ? loanAmt*monthlyRate*Math.pow(1+monthlyRate,tenureMonths)/(Math.pow(1+monthlyRate,tenureMonths)-1) : 0;
+  const monthlyExp = exp/12;
+  const monthlyCashflow = rent - emi - monthlyExp;
+  const annualCashflow = monthlyCashflow*12;
+  const cashInvested = downPayment;
+  const coc = cashInvested > 0 ? (annualCashflow/cashInvested)*100 : 0;
+
+  document.getElementById('re-noi').textContent = inr(noi);
+  document.getElementById('re-cap').textContent = capRate.toFixed(2) + '%';
+  document.getElementById('re-emi').textContent = inr(emi);
+  document.getElementById('re-cashflow').textContent = inr(monthlyCashflow);
+  document.getElementById('re-invested').textContent = inr(cashInvested);
+  document.getElementById('re-coc').textContent = coc.toFixed(2) + '%';
+
+  const verdict = document.getElementById('re-verdict');
+  if (monthlyCashflow > 0 && capRate > 6) {
+    verdict.className = 'verdict good';
+    verdict.textContent = 'Strong deal — positive cashflow aur cap rate FD se zyada hai.';
+  } else if (monthlyCashflow > 0) {
+    verdict.className = 'verdict ok';
+    verdict.textContent = 'Okay deal — positive cashflow hai, lekin cap rate average hai.';
+  } else {
+    verdict.className = 'verdict bad';
+    verdict.textContent = 'Negative cashflow — sirf future appreciation pe depend karna padega. Caution se aage badho.';
+  }
+}
+
+// ===== BRRRR =====
+function calcBRRRR() {
+  const arv = parseFloat(document.getElementById('brrrr-arv-num').value)||0;
+  const reno = parseFloat(document.getElementById('brrrr-reno-num').value)||0;
+  const maxPrice = (arv * 0.70) - reno;
+  document.getElementById('brrrr-max').textContent = inr(Math.max(0,maxPrice));
+}
+
+// ===== TVM =====
+function calcTVM() {
+  const amt = parseFloat(document.getElementById('tvm-amt-num').value)||0;
+  const rPct = parseFloat(document.getElementById('tvm-r-num').value)||0;
+  const r = rPct/100;
+  const n = parseFloat(document.getElementById('tvm-n-num').value)||0;
+  const fv = amt * Math.pow(1+r, n);
+  const pv = amt / Math.pow(1+r, n);
+  document.getElementById('tvm-fv').textContent = inr(fv);
+  document.getElementById('tvm-pv').textContent = inr(pv);
+}
+
+// ===== INCOME TAX =====
+function calcTax() {
+  const income = parseFloat(document.getElementById('tax-income-num').value)||0;
+  let tax = 0;
+  const slabs = [
+    [300000, 700000, 0.05],
+    [700000, 1000000, 0.10],
+    [1000000, 1200000, 0.15],
+    [1200000, 1500000, 0.20],
+    [1500000, Infinity, 0.30]
+  ];
+  for (const [low, high, rate] of slabs) {
+    if (income > low) {
+      const taxable = Math.min(income, high) - low;
+      tax += taxable * rate;
+    }
+  }
+  if (income <= 700000) tax = 0;
+  tax = tax * 1.04;
+  const effRate = income > 0 ? (tax/income)*100 : 0;
+  const inHand = income - tax;
+  document.getElementById('tax-amount').textContent = inr(tax);
+  document.getElementById('tax-rate').textContent = effRate.toFixed(2) + '%';
+  document.getElementById('tax-inhand').textContent = inr(inHand);
+  document.getElementById('tax-monthly').textContent = inr(inHand/12);
+}
+
+// ===== SIP =====
+function calcSIP() {
+  const p = parseFloat(document.getElementById('sip-p-num').value)||0;
+  const rPct = parseFloat(document.getElementById('sip-r-num').value)||0;
+  const annualRate = rPct/100;
+  const monthlyRate = annualRate/12;
+  const years = parseFloat(document.getElementById('sip-y-num').value)||0;
+  const n = years*12;
+  const fv = monthlyRate > 0 ? p * ((Math.pow(1+monthlyRate, n) - 1) / monthlyRate) * (1+monthlyRate) : p*n;
+  const invested = p*n;
+  document.getElementById('sip-invested').textContent = inr(invested);
+  document.getElementById('sip-fv').textContent = inr(fv);
+  document.getElementById('sip-gain').textContent = inr(fv-invested);
+}
+
+// ===== REAL RETURN =====
+function calcRealReturn() {
+  const nom = parseFloat(document.getElementById('rr-nom-num').value)||0;
+  const inf = parseFloat(document.getElementById('rr-inf-num').value)||0;
+  const amt = parseFloat(document.getElementById('rr-amt-num').value)||0;
+  const yrs = parseFloat(document.getElementById('rr-yrs-num').value)||0;
+
+  const realRate = nom - inf;
+  const nominalFV = amt * Math.pow(1 + nom/100, yrs);
+  const realFV = amt * Math.pow(1 + realRate/100, yrs);
+
+  document.getElementById('rr-real').textContent = realRate.toFixed(2) + '%';
+  document.getElementById('rr-nominal-fv').textContent = inr(nominalFV);
+  document.getElementById('rr-real-fv').textContent = inr(realFV);
+
+  const verdict = document.getElementById('rr-verdict');
+  if (realRate < 0) {
+    verdict.className = 'verdict bad';
+    verdict.textContent = 'Negative real return — tu actually purchasing power kho raha hai, chahe number badh raha ho.';
+  } else if (realRate < 2) {
+    verdict.className = 'verdict ok';
+    verdict.textContent = 'Barely positive — inflation ko thoda beat kar rahe ho, but growth minimal hai.';
+  } else {
+    verdict.className = 'verdict good';
+    verdict.textContent = 'Healthy real return — wealth actually badh rahi hai inflation ke baad bhi.';
+  }
+}
+
+// ===== GOAL PLANNER =====
+function calcGoal() {
+  const goal = parseFloat(document.getElementById('goal-amt-num').value)||0;
+  const years = parseFloat(document.getElementById('goal-yrs-num').value)||1;
+  const rPct = parseFloat(document.getElementById('goal-r-num').value)||0;
+  const lump = parseFloat(document.getElementById('goal-lump-num').value)||0;
+
+  const annualRate = rPct/100;
+  const monthlyRate = annualRate/12;
+  const n = years*12;
+
+  const lumpFV = lump * Math.pow(1+annualRate, years);
+  const remaining = Math.max(0, goal - lumpFV);
+
+  let requiredSIP = 0;
+  if (monthlyRate > 0) {
+    const factor = ((Math.pow(1+monthlyRate, n) - 1) / monthlyRate) * (1+monthlyRate);
+    requiredSIP = remaining / factor;
+  } else {
+    requiredSIP = remaining / n;
+  }
+
+  document.getElementById('goal-lump-fv').textContent = inr(lumpFV);
+  document.getElementById('goal-remaining').textContent = inr(remaining);
+  document.getElementById('goal-sip').textContent = inr(requiredSIP);
+}
+
+// ===== PREPAYMENT =====
+function calcPrepay() {
+  const p = parseFloat(document.getElementById('prep-p-num').value)||0;
+  const rPct = parseFloat(document.getElementById('prep-r-num').value)||0;
+  const r = rPct/12/100;
+  const years = parseFloat(document.getElementById('prep-y-num').value)||1;
+  const n = years*12;
+  const extra = parseFloat(document.getElementById('prep-extra-num').value)||0;
+
+  const origEMI = r > 0 ? p*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1) : p/n;
+  const newEMI = origEMI + extra;
+
+  // Calculate new tenure with higher EMI
+  let newN;
+  if (r > 0 && newEMI > p*r) {
+    newN = Math.log(newEMI / (newEMI - p*r)) / Math.log(1+r);
+  } else {
+    newN = p / newEMI;
+  }
+  newN = Math.max(0, newN);
+
+  const origTotal = origEMI * n;
+  const newTotal = newEMI * newN;
+
+  const origInterest = origTotal - p;
+  const newInterest = newTotal - p;
+  const interestSaved = origInterest - newInterest;
+
+  const newTenureYears = newN/12;
+  const timeSavedYears = years - newTenureYears;
+
+  document.getElementById('prep-orig-emi').textContent = inr(origEMI);
+  document.getElementById('prep-new-tenure').textContent = newTenureYears.toFixed(1) + ' yrs';
+  document.getElementById('prep-time-saved').textContent = Math.max(0,timeSavedYears).toFixed(1) + ' yrs';
+  document.getElementById('prep-interest-saved').textContent = inr(Math.max(0,interestSaved));
+}
+
+// ===== BUY VS RENT =====
+function calcBuyVsRent() {
+  const price = parseFloat(document.getElementById('bvr-price-num').value)||0;
+  const rent = parseFloat(document.getElementById('bvr-rent-num').value)||0;
+  const downPct = parseFloat(document.getElementById('bvr-down-num').value)||20;
+  const down = downPct/100;
+  const loanRatePct = parseFloat(document.getElementById('bvr-loanrate-num').value)||9;
+  const apprecPct = parseFloat(document.getElementById('bvr-apprec-num').value)||0;
+  const investRetPct = parseFloat(document.getElementById('bvr-investret-num').value)||0;
+  const years = parseFloat(document.getElementById('bvr-yrs-num').value)||1;
+
+  const downPayment = price * down;
+  const loanAmt = price - downPayment;
+  const monthlyRate = loanRatePct/12/100;
+  const tenureMonths = 20*12; // assume 20 yr loan
+  const emi = monthlyRate > 0 ? loanAmt*monthlyRate*Math.pow(1+monthlyRate,tenureMonths)/(Math.pow(1+monthlyRate,tenureMonths)-1) : loanAmt/tenureMonths;
+
+  // BUY scenario
+  const propertyFV = price * Math.pow(1 + apprecPct/100, years);
+  const monthsElapsed = Math.min(years*12, tenureMonths);
+  // remaining loan balance after monthsElapsed (approx via amortization)
+  let balance = loanAmt;
+  const monthlyPrincipalPayments = [];
+  for (let i=0; i<monthsElapsed; i++) {
+    const interestPortion = balance * monthlyRate;
+    const principalPortion = emi - interestPortion;
+    balance -= principalPortion;
+    if (balance < 0) balance = 0;
+  }
+  const buyNetWorth = propertyFV - balance;
+
+  // RENT scenario
+  const monthlyDiff = emi - rent; // if positive, buyer pays more than renter would, so renter invests difference
+  const investAnnualRate = investRetPct/100;
+  const investMonthlyRate = investAnnualRate/12;
+  // Invest the down payment lumpsum
+  const downPaymentFV = downPayment * Math.pow(1+investAnnualRate, years);
+  // Invest the monthly difference (if positive) as SIP
+  let sipFV = 0;
+  if (monthlyDiff > 0) {
+    const n = years*12;
+    sipFV = investMonthlyRate > 0 ? monthlyDiff * ((Math.pow(1+investMonthlyRate, n) - 1) / investMonthlyRate) * (1+investMonthlyRate) : monthlyDiff*n;
+  }
+  const rentNetWorth = downPaymentFV + sipFV;
+
+  document.getElementById('bvr-buy').textContent = inr(buyNetWorth);
+  document.getElementById('bvr-rent-result').textContent = inr(rentNetWorth);
+
+  const verdict = document.getElementById('bvr-verdict');
+  const diff = buyNetWorth - rentNetWorth;
+  if (Math.abs(diff) < price*0.05) {
+    verdict.className = 'verdict ok';
+    verdict.textContent = 'Close call — dono options similar hain. Lifestyle factors (stability, ownership) decide karenge.';
+  } else if (diff > 0) {
+    verdict.className = 'verdict good';
+    verdict.textContent = 'BUY better hai in these numbers — property appreciation EMI premium ko justify karta hai.';
+  } else {
+    verdict.className = 'verdict bad';
+    verdict.textContent = 'RENT + INVEST better hai in these numbers — alternative investment se zyada return mil sakta hai.';
+  }
+}
+
+// ===== BUSINESS VALUATION =====
+function calcBizVal() {
+  const monthlyRev = parseFloat(document.getElementById('bv-rev-num').value)||0;
+  const marginPct = parseFloat(document.getElementById('bv-margin-num').value)||0;
+  const revMult = parseFloat(document.getElementById('bv-revmult-num').value)||0;
+  const ebitdaMult = parseFloat(document.getElementById('bv-ebitdamult-num').value)||0;
+
+  const annualRev = monthlyRev*12;
+  const annualProfit = annualRev * (marginPct/100);
+  const valRev = annualRev * revMult;
+  const valEbitda = annualProfit * ebitdaMult;
+
+  document.getElementById('bv-annualrev').textContent = inr(annualRev);
+  document.getElementById('bv-annualprofit').textContent = inr(annualProfit);
+  document.getElementById('bv-val-rev').textContent = inr(valRev);
+  document.getElementById('bv-val-ebitda').textContent = inr(valEbitda);
+}
+
+// ===== CAP TABLE / DILUTION =====
+function calcCapTable() {
+  const premoney = parseFloat(document.getElementById('cap-premoney-num').value)||0;
+  const invest = parseFloat(document.getElementById('cap-invest-num').value)||0;
+  const yourPct = parseFloat(document.getElementById('cap-yourpct-num').value)||0;
+
+  const postmoney = premoney + invest;
+  const investorPct = postmoney > 0 ? (invest/postmoney)*100 : 0;
+  const yourNewPct = yourPct * (1 - investorPct/100);
+  const yourValue = postmoney * (yourNewPct/100);
+  const yourOldValue = premoney * (yourPct/100);
+
+  document.getElementById('cap-postmoney').textContent = inr(postmoney);
+  document.getElementById('cap-investorpct').textContent = investorPct.toFixed(2) + '%';
+  document.getElementById('cap-yournewpct').textContent = yourNewPct.toFixed(2) + '%';
+  document.getElementById('cap-yourvalue').textContent = inr(yourValue);
+
+  const verdict = document.getElementById('cap-verdict');
+  if (yourValue > yourOldValue) {
+    verdict.className = 'verdict good';
+    verdict.textContent = `Good trade — tera % gira (${yourPct}% -> ${yourNewPct.toFixed(1)}%) but Rupee value badha (${inr(yourOldValue)} -> ${inr(yourValue)}).`;
+  } else {
+    verdict.className = 'verdict bad';
+    verdict.textContent = 'Caution — is valuation pe tera stake ki Rupee value ghat rahi hai. Negotiate karo.';
+  }
+}
+
+// ===== RETIREMENT CORPUS =====
+function calcRetirement() {
+  const expenses = parseFloat(document.getElementById('ret-exp-num').value)||0;
+  const years = parseFloat(document.getElementById('ret-yrs-num').value)||0;
+  const infPct = parseFloat(document.getElementById('ret-inf-num').value)||0;
+  const withdrawPct = parseFloat(document.getElementById('ret-withdraw-num').value)||4;
+  const rPct = parseFloat(document.getElementById('ret-r-num').value)||0;
+
+  const futureMonthlyExp = expenses * Math.pow(1+infPct/100, years);
+  const futureAnnualExp = futureMonthlyExp * 12;
+  const corpus = futureAnnualExp / (withdrawPct/100);
+
+  // required SIP to reach corpus
+  const annualRate = rPct/100;
+  const monthlyRate = annualRate/12;
+  const n = years*12;
+  let requiredSIP = 0;
+  if (monthlyRate > 0) {
+    const factor = ((Math.pow(1+monthlyRate, n) - 1) / monthlyRate) * (1+monthlyRate);
+    requiredSIP = corpus / factor;
+  } else {
+    requiredSIP = corpus / n;
+  }
+
+  document.getElementById('ret-future-exp').textContent = inr(futureMonthlyExp);
+  document.getElementById('ret-corpus').textContent = inr(corpus);
+  document.getElementById('ret-sip').textContent = inr(requiredSIP);
+}
+
+// ===== CARBON CREDITS =====
+function calcCarbon() {
+  const tonnes = parseFloat(document.getElementById('cc-tonnes-num').value)||0;
+  const rate = parseFloat(document.getElementById('cc-rate-num').value)||0;
+  const price = parseFloat(document.getElementById('cc-price-num').value)||0;
+  const fx = parseFloat(document.getElementById('cc-fx-num').value)||0;
+
+  const credits = tonnes * rate;
+  const revenueUSD = credits * price;
+  const revenueINR = revenueUSD * fx;
+  const annualINR = revenueINR * 12;
+
+  document.getElementById('cc-credits').textContent = Math.round(credits).toLocaleString('en-IN');
+  document.getElementById('cc-revenue-usd').textContent = usd(revenueUSD);
+  document.getElementById('cc-revenue-inr').textContent = inr(revenueINR);
+  document.getElementById('cc-annual-inr').textContent = inr(annualINR);
+}
+
+// ===== FOREX IMPACT =====
+function calcFX() {
+  const amountUSD = parseFloat(document.getElementById('fx-usd-num').value)||0;
+  const oldRate = parseFloat(document.getElementById('fx-old-num').value)||0;
+  const newRate = parseFloat(document.getElementById('fx-new-num').value)||0;
+  const type = document.getElementById('fx-type').value;
+
+  const oldINR = amountUSD * oldRate;
+  const newINR = amountUSD * newRate;
+  let impact = newINR - oldINR;
+
+  document.getElementById('fx-old-inr').textContent = inr(oldINR);
+  document.getElementById('fx-new-inr').textContent = inr(newINR);
+
+  const verdict = document.getElementById('fx-verdict');
+  let displayImpact = impact;
+  let isGood;
+
+  if (type === 'exporter') {
+    // Exporter receives USD, converts to INR. Higher rate = more INR = good
+    isGood = impact > 0;
+  } else {
+    // Importer pays USD, sourced from INR. Higher rate = more INR needed = bad
+    isGood = impact < 0;
+    displayImpact = -impact; // show as cost
+  }
+
+  document.getElementById('fx-impact').textContent = inr(Math.abs(impact));
+
+  if (impact === 0) {
+    verdict.className = 'verdict ok';
+    verdict.textContent = 'No change — rates same hain.';
+  } else if (isGood) {
+    verdict.className = 'verdict good';
+    verdict.textContent = type === 'exporter'
+      ? `Fayda — rupee weaken hua, tujhe ${inr(Math.abs(impact))} extra mile same dollars pe.`
+      : `Fayda — rupee strengthen hua, tujhe ${inr(Math.abs(impact))} kam dene pade same dollars ke liye.`;
+  } else {
+    verdict.className = 'verdict bad';
+    verdict.textContent = type === 'exporter'
+      ? `Loss — rupee strengthen hua, tujhe ${inr(Math.abs(impact))} kam mile same dollars pe.`
+      : `Loss — rupee weaken hua, tujhe ${inr(Math.abs(impact))} extra dene pade same dollars ke liye.`;
+  }
+}
+
+// Initialize all
+calcNW(); calcCI(); calcEMI(); calcLev(); calcR72(); calcRE(); calcBRRRR(); calcTVM(); calcTax();
+calcSIP(); calcRealReturn(); calcGoal(); calcPrepay(); calcBuyVsRent(); calcBizVal(); calcCapTable();
+calcRetirement(); calcCarbon(); calcFX();
+</script>
+</body>
+</html>
